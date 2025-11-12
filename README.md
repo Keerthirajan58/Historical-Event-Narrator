@@ -1,0 +1,50 @@
+# Historical Event Narrator
+
+**CS 6366 — Neural Networks (Final Project)**  
+**Project summary:** Fine-tuning a large language model using LoRA (Low-Rank Adaptation) to convert Wikipedia-style historical event articles into engaging narrative stories. The model will be trained to produce variations such as "what-if" alternatives and underrepresented perspectives. The project focuses on efficiency (LoRA adapters), reproducibility, and evaluation using automatic metrics and an LLM-as-judge approach.
+
+---
+
+## Team
+- Keerthirajan Senthilkumar "github.com/Keerthirajan58/"
+- Prithvi Saran Sathyasaran "github.com/prithvisaran3/"
+- Roshini Venkateswaran "github.com/RoshiniVenkateswaran/"
+
+---
+
+## Datasets (original sources)
+We will use only free, public datasets. Primary candidate:
+
+- **Wikipedia Structured Contents** (JSON snapshots of articles with `title`, `abstract`, `sections`, `infobox`) — available from Wikimedia / Kaggle as “Wikipedia Structured Contents”.  
+  _Link to dataset:_ `https://www.kaggle.com/datasets/wikimedia-foundation/wikipedia-structured-contents/data`
+
+---
+
+## Project structure
+ historical-event-narrator/
+├─ Documents
+├─ README.md
+├─ requirements.txt
+├─ .gitignore
+├─ NOTES.md
+├─ data/                  
+│  ├─ README.md
+│  └─ samples/
+├─ src/
+│  ├─ data_prep/          
+│  │  └─ 
+│  ├─ training/           
+│  │  └─ 
+│  ├─ eval/               
+│  │  └─ 
+│  └─ inference/
+│     └─ 
+├─ notebooks/             
+│  └─ 
+├─ models/                
+│  └─ .gitkeep
+└─ .github/
+   └─ workflows/
+      └─
+
+---

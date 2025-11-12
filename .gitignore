@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+env/
+venv/
+.env
+.ipynb_checkpoints/
+
+# Data / models (do not push large files)
+data/*.bin
+data/*.bz2
+data/*.jsonl
+models/
+*.ckpt
+*.safetensors
+*.pt
+
+# Colab
+*.ipynb
+
+# macOS
+.DS_Store
