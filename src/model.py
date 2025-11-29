@@ -2,19 +2,25 @@ import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
 from peft import LoraConfig, get_peft_model, TaskType
 
-def get_model_and_tokenizer(model_name="mistralai/Mistral-7B-v0.1"):
+def get_model_and_tokenizer(model_name="mistralai/Mistral-7B-v0.1", use_quantization=True):
     """
-    Loads the base model and tokenizer with 4-bit quantization for efficient training.
+    Loads the base model and tokenizer.
+    Args:
+        model_name: HF model identifier.
+        use_quantization: If True, uses 4-bit quantization (requires CUDA/bitsandbytes).
+                          Set to False for local testing on Mac/CPU.
     """
-    print(f"Loading model: {model_name}")
+    print(f"Loading model: {model_name} (Quantization: {use_quantization})")
 
-    # 4-bit Quantization Config
-    bnb_config = BitsAndBytesConfig(
-        load_in_4bit=True,
-        bnb_4bit_quant_type="nf4",
-        bnb_4bit_compute_dtype=torch.float16,
-        bnb_4bit_use_double_quant=False,
-    )
+    bnb_config = None
+    if use_quantization:
+        # 4-bit Quantization Config
+        bnb_config = BitsAndBytesConfig(
+            load_in_4bit=True,
+            bnb_4bit_quant_type="nf4",
+            bnb_4bit_compute_dtype=torch.float16,
+            bnb_4bit_use_double_quant=False,
+        )
 
     # Load Tokenizer
     tokenizer = AutoTokenizer.from_pretrained(model_name)
@@ -24,13 +30,14 @@ def get_model_and_tokenizer(model_name="mistralai/Mistral-7B-v0.1"):
     # Load Model
     model = AutoModelForCausalLM.from_pretrained(
         model_name,
-        quantization_config=bnb_config,
+        quantization_config=bnb_config if use_quantization else None,
         device_map="auto",
         trust_remote_code=True
     )
     
     # Enable gradient checkpointing for memory efficiency
-    model.gradient_checkpointing_enable()
+    if use_quantization:
+        model.gradient_checkpointing_enable()
     
     return model, tokenizer
 
