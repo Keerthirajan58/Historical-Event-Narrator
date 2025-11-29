@@ -13,10 +13,20 @@ def train(
     batch_size=4
 ):
     # 1. Load Model & Tokenizer
-    model, tokenizer = get_model_and_tokenizer(model_name)
+    # For local testing with GPT2, we must disable quantization
+    use_quantization = True
+    if model_name == "gpt2":
+        use_quantization = False
+        
+    model, tokenizer = get_model_and_tokenizer(model_name, use_quantization=use_quantization)
     
     # 2. Apply LoRA
     peft_config = get_lora_config()
+    
+    # Adjust target modules for GPT2 testing
+    if model_name == "gpt2":
+        peft_config.target_modules = ["c_attn"]
+        
     model = get_peft_model_wrapper(model, peft_config)
 
     # 3. Load Data
