@@ -21,3 +21,21 @@ We will use only free, public datasets. Primary candidate:
 ---
 
 ---
+
+## Project Structure
+```
+Historical-Event-Narrator/
+├── data/                   # Raw and processed datasets
+├── src/
+│   ├── data_processing.py  # Data loading and cleaning
+│   ├── model.py            # Model loading and LoRA config
+│   ├── train.py            # Training loop
+│   ├── evaluate_metrics.py # ROUGE/BLEU metrics
+│   ├── evaluate_judge.py   # Gemini-as-Judge logic
+│   └── inference.py        # Inference script
+├── app/
+│   └── app.py              # Demo application (Streamlit/Gradio)
+├── notebooks/              # Colab notebooks for experiments
+├── requirements.txt
+└── README.md
+```
