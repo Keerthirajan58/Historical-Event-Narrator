@@ -2,6 +2,10 @@ import os
 import torch
 from transformers import TrainingArguments, Trainer, DataCollatorForLanguageModeling
 from datasets import load_dataset
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from src.model import get_model_and_tokenizer, get_lora_config, get_peft_model_wrapper
 
 def train(
@@ -10,35 +14,50 @@ def train(
     output_dir="./results",
     model_name="mistralai/Mistral-7B-v0.1",
     num_epochs=1,
-    batch_size=4
+    batch_size=4,
+    use_quantization=True
 ):
     # 1. Load Model & Tokenizer
-    # For local testing with GPT2, we must disable quantization
-    use_quantization = True
-    if model_name == "gpt2":
-        use_quantization = False
-        
     model, tokenizer = get_model_and_tokenizer(model_name, use_quantization=use_quantization)
     
     # 2. Apply LoRA
-    peft_config = get_lora_config()
-    
-    # Adjust target modules for GPT2 testing
-    if model_name == "gpt2":
-        peft_config.target_modules = ["c_attn"]
+    # Adjust target modules based on model type for testing
+    target_modules = ["q_proj", "k_proj", "v_proj", "o_proj"]
+    if "gpt2" in model_name:
+        target_modules = ["c_attn"]
         
+    peft_config = get_lora_config()
+    peft_config.target_modules = target_modules
+    
     model = get_peft_model_wrapper(model, peft_config)
 
     # 3. Load Data
-    # Assuming jsonl format from Prithvi
-    dataset = load_dataset("json", data_files={"train": train_file, "validation": val_file})
+    # Check if validation file exists and is not empty
+    if not os.path.exists(val_file) or os.path.getsize(val_file) == 0:
+        print(f"Validation file {val_file} is empty or missing. Splitting train file.")
+        dataset = load_dataset("json", data_files={"train": train_file})
+        # Split 90/10
+        dataset = dataset["train"].train_test_split(test_size=0.1)
+        # Rename 'test' to 'validation' for consistency
+        dataset["validation"] = dataset.pop("test")
+    else:
+        dataset = load_dataset("json", data_files={"train": train_file, "validation": val_file})
     
+    # Ensure pad token is set
+    if tokenizer.pad_token is None:
+        tokenizer.pad_token = tokenizer.eos_token
+        
     def tokenize_function(examples):
         # Create prompt + completion format
-        # This depends on how Prithvi structures the data. 
-        # Assuming 'prompt' and 'completion' fields.
-        text = [p + " " + c for p, c in zip(examples["prompt"], examples["completion"])]
-        return tokenizer(text, padding="max_length", truncation=True, max_length=512)
+        # Prithvi's data has 'input' (title) and 'output' (narrative) and 'instruction'
+        # We'll combine them: Instruction + Input -> Output
+        
+        prompts = [f"{inst}\n\nTopic: {inp}\n\nNarrative:" for inst, inp in zip(examples["instruction"], examples["input"])]
+        outputs = examples["output"]
+        
+        texts = [p + " " + o for p, o in zip(prompts, outputs)]
+        
+        return tokenizer(texts, padding="max_length", truncation=True, max_length=128) # Short length for testing
 
     tokenized_datasets = dataset.map(tokenize_function, batched=True)
 
@@ -48,12 +67,14 @@ def train(
         per_device_train_batch_size=batch_size,
         gradient_accumulation_steps=4,
         learning_rate=2e-4,
-        logging_steps=10,
-        num_train_epochs=num_epochs,
+        logging_steps=1,
+        num_train_epochs=3,
         save_steps=50,
-        fp16=True,
-        optim="paged_adamw_8bit", # Efficient optimizer
-        report_to="none" # Change to 'wandb' if needed
+        fp16=False, # MPS doesn't support standard fp16 amp in Trainer same way as CUDA
+        bf16=False, # M-series supports bf16 but let's stick to float16 weights for stability first
+        use_cpu=False, 
+        optim="adamw_torch", 
+        report_to="none"
     )
 
     # 5. Trainer
@@ -74,6 +95,19 @@ def train(
     trainer.save_model(output_dir)
 
 if __name__ == "__main__":
-    # Example usage (commented out until data exists)
-    # train("data/train.jsonl", "data/val.jsonl")
-    print("Training script ready. Waiting for data...")
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--train_file", type=str, default="data/processed/train.jsonl")
+    parser.add_argument("--val_file", type=str, default="data/processed/test.jsonl")
+    parser.add_argument("--model_name", type=str, default="gpt2") # Default to gpt2 for local test
+    parser.add_argument("--use_quantization", action="store_true")
+    args = parser.parse_args()
+    
+    train(
+        train_file=args.train_file, 
+        val_file=args.val_file, 
+        model_name=args.model_name,
+        use_quantization=args.use_quantization,
+        num_epochs=1,
+        batch_size=2
+    )

@@ -7,37 +7,52 @@ def get_model_and_tokenizer(model_name="mistralai/Mistral-7B-v0.1", use_quantiza
     Loads the base model and tokenizer.
     Args:
         model_name: HF model identifier.
-        use_quantization: If True, uses 4-bit quantization (requires CUDA/bitsandbytes).
-                          Set to False for local testing on Mac/CPU.
+        use_quantization: If True, attempts 4-bit quantization. 
+                          On Mac (MPS), this will fallback to float16 as bitsandbytes is CUDA-only.
     """
-    print(f"Loading model: {model_name} (Quantization: {use_quantization})")
+    print(f"Loading model: {model_name}")
+    
+    # Check for MPS (Apple Silicon)
+    device = "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
+    print(f"Using device: {device}")
 
     bnb_config = None
-    if use_quantization:
-        # 4-bit Quantization Config
-        bnb_config = BitsAndBytesConfig(
-            load_in_4bit=True,
-            bnb_4bit_quant_type="nf4",
-            bnb_4bit_compute_dtype=torch.float16,
-            bnb_4bit_use_double_quant=False,
-        )
+    
+    # Handle Mac/MPS limitations
+    if device == "mps":
+        print("Mac (MPS) detected. BitsAndBytes (4-bit) is not supported. Falling back to float16.")
+        use_quantization = False # Force disable 4-bit on Mac
+        torch_dtype = torch.float16 # Use half-precision to fit in 24GB RAM
+    else:
+        torch_dtype = torch.float16
+        if use_quantization:
+            # 4-bit Quantization Config (CUDA only)
+            bnb_config = BitsAndBytesConfig(
+                load_in_4bit=True,
+                bnb_4bit_quant_type="nf4",
+                bnb_4bit_compute_dtype=torch.float16,
+                bnb_4bit_use_double_quant=False,
+            )
 
     # Load Tokenizer
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     tokenizer.pad_token = tokenizer.eos_token
-    tokenizer.padding_side = "right" # Fix for fp16
+    tokenizer.padding_side = "right" 
 
     # Load Model
     model = AutoModelForCausalLM.from_pretrained(
         model_name,
         quantization_config=bnb_config if use_quantization else None,
-        device_map="auto",
+        torch_dtype=torch_dtype,
+        device_map="auto" if device != "mps" else None, # device_map="auto" can be buggy with MPS
         trust_remote_code=True
     )
     
+    if device == "mps":
+        model.to("mps")
+    
     # Enable gradient checkpointing for memory efficiency
-    if use_quantization:
-        model.gradient_checkpointing_enable()
+    model.gradient_checkpointing_enable()
     
     return model, tokenizer
 
