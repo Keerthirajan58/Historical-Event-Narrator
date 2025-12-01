@@ -39,3 +39,12 @@ Historical-Event-Narrator/
 ├── requirements.txt
 └── README.md
 ```
+
+## Running the App
+To run the Streamlit app:
+1. Ensure you have the `results/` folder (model weights) in the root directory.
+2. Set up your `.env` with `GEMINI_API_KEY`.
+3. Run:
+   ```bash
+   streamlit run app/app.py
+   ```
