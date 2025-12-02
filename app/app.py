@@ -24,17 +24,22 @@ st.markdown("""
         color: #ffffff;
     }
     .stButton>button {
-        background-color: #ff4b4b;
+        background-color: #ff6b6b; /* Softer red */
         color: white;
-        border-radius: 10px;
-        height: 50px;
+        border-radius: 12px;
+        height: 55px;
         width: 100%;
         font-size: 20px;
+        transition: all 0.3s ease;
+    }
+    .stButton>button:hover {
+        background-color: #ff4b4b;
+        transform: scale(1.02);
     }
     .title {
         font-size: 50px;
         font-weight: bold;
-        background: -webkit-linear-gradient(45deg, #ff4b4b, #ff914d);
+        background: -webkit-linear-gradient(45deg, #ff6b6b, #ffa502);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         text-align: center;
@@ -42,19 +47,32 @@ st.markdown("""
     }
     .story-box {
         background-color: #262730;
-        padding: 20px;
-        border-radius: 10px;
-        border-left: 5px solid #ff4b4b;
+        padding: 25px;
+        border-radius: 15px;
+        border-left: 5px solid #ff6b6b;
         font-family: 'Georgia', serif;
         line-height: 1.6;
         font-size: 18px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.3);
     }
     .judge-box {
         background-color: #1c1e24;
-        padding: 15px;
-        border-radius: 10px;
-        margin-top: 20px;
+        padding: 20px;
+        border-radius: 15px;
+        margin-top: 25px;
         border: 1px solid #444;
+    }
+    .footer {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background-color: #0e1117;
+        color: #888;
+        text-align: center;
+        padding: 10px;
+        font-size: 14px;
+        border-top: 1px solid #333;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -217,3 +235,6 @@ if generate_btn and topic:
             # Cleanup Memory
             if device == "mps":
                 torch.mps.empty_cache()
+
+# Footer
+st.markdown('<div class="footer">Developed by Prithvi, Keerthi, & Roshini | Historical Event Narrator v1.0</div>', unsafe_allow_html=True)
