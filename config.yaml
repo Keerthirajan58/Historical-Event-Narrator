@@ -1,0 +1,22 @@
+# Model Configuration
+model:
+  base_model: "mistralai/Mistral-7B-v0.1"
+  adapter_output_dir: "models/final_adapter"
+  max_length: 1024
+
+# Training Configuration
+training:
+  num_epochs: 1
+  batch_size: 2
+  gradient_accumulation_steps: 4
+  learning_rate: 2.0e-4
+  logging_steps: 10
+  save_strategy: "epoch"
+  eval_strategy: "epoch"
+  fp16: true
+  optim: "adamw_torch"
+
+# Data Configuration
+data:
+  train_file: "data/processed/train.jsonl"
+  test_file: "data/processed/test.jsonl"

@@ -96,18 +96,27 @@ def train(
 
 if __name__ == "__main__":
     import argparse
+    import yaml
+    
+    # Load configuration
+    with open("config.yaml", "r") as f:
+        config = yaml.safe_load(f)
+        
     parser = argparse.ArgumentParser()
-    parser.add_argument("--train_file", type=str, default="data/processed/train.jsonl")
-    parser.add_argument("--val_file", type=str, default="data/processed/test.jsonl")
-    parser.add_argument("--model_name", type=str, default="gpt2") # Default to gpt2 for local test
-    parser.add_argument("--use_quantization", action="store_true")
+    # Allow overriding config via CLI, but default to config values
+    parser.add_argument("--train_file", type=str, default=config["data"]["train_file"])
+    parser.add_argument("--val_file", type=str, default=config["data"]["test_file"])
+    parser.add_argument("--model_name", type=str, default=config["model"]["base_model"])
+    parser.add_argument("--output_dir", type=str, default=config["model"]["adapter_output_dir"])
+    parser.add_argument("--use_quantization", action="store_true", help="Enable 4-bit quantization")
     args = parser.parse_args()
     
     train(
         train_file=args.train_file, 
         val_file=args.val_file, 
+        output_dir=args.output_dir,
         model_name=args.model_name,
         use_quantization=args.use_quantization,
-        num_epochs=1,
-        batch_size=2
+        num_epochs=config["training"]["num_epochs"],
+        batch_size=config["training"]["batch_size"]
     )
