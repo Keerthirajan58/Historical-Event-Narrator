@@ -4,9 +4,16 @@ import os
 from datasets import load_dataset
 from tqdm import tqdm
 
-def download_wikipedia_data(output_file, num_examples=2000, lang="en"):
+from typing import Optional
+
+def download_wikipedia_data(output_file: str, num_examples: int = 2000, lang: str = "en") -> None:
     """
     Downloads a subset of Wikipedia articles and filters for historical content.
+
+    Args:
+        output_file (str): Path to save the raw JSONL data.
+        num_examples (int): Number of historical examples to collect. Defaults to 2000.
+        lang (str): Wikipedia language code. Defaults to "en".
     """
     print(f"Downloading Wikipedia data ({lang})...")
     
