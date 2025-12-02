@@ -46,11 +46,20 @@ def generate_narrative_with_gemini(title, text):
         print(f"Error generating content for {title}: {e}")
         return None
 
-def create_prompt(article, use_gemini=False):
+from typing import Dict, List, Any, Optional
+
+def create_prompt(article: Dict[str, str], use_gemini: bool = False) -> Optional[Dict[str, str]]:
     """
-    Creates an instruction-input-output pair.
-    If use_gemini is True, it generates a synthetic narrative.
-    Otherwise, it uses the raw text (fallback).
+    Creates an instruction-input-output pair from a Wikipedia article.
+
+    Args:
+        article (Dict[str, str]): A dictionary containing 'title' and 'text' of the article.
+        use_gemini (bool): If True, uses Gemini API to generate a synthetic narrative.
+                           Otherwise, uses a truncated version of the raw text.
+
+    Returns:
+        Optional[Dict[str, str]]: A dictionary with 'instruction', 'input', and 'output' keys,
+                                  or None if Gemini generation fails.
     """
     title = article['title']
     text = article['text']
@@ -74,9 +83,16 @@ def create_prompt(article, use_gemini=False):
         "output": narrative
     }
 
-def preprocess_data(input_file, output_dir, train_ratio=0.9, use_gemini=False, limit=None):
+def preprocess_data(input_file: str, output_dir: str, train_ratio: float = 0.9, use_gemini: bool = False, limit: Optional[int] = None) -> None:
     """
     Preprocesses raw JSONL data into train/test splits.
+
+    Args:
+        input_file (str): Path to the raw JSONL file.
+        output_dir (str): Directory to save the processed files.
+        train_ratio (float): Ratio of data to use for training. Defaults to 0.9.
+        use_gemini (bool): If True, uses Gemini API to generate synthetic narratives. Defaults to False.
+        limit (Optional[int]): Limits the number of examples to process. Defaults to None (no limit).
     """
     print(f"Processing {input_file} (Gemini Enabled: {use_gemini})...")
     

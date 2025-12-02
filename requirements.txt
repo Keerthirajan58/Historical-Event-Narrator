@@ -33,3 +33,4 @@ notebook>=7.0.0
 # --- Utility / Packaging ---
 huggingface-hub>=0.22.0
 python-dotenv>=1.0.0
+pyyaml

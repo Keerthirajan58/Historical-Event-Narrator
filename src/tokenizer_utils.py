@@ -4,9 +4,13 @@ import numpy as np
 from transformers import AutoTokenizer
 import matplotlib.pyplot as plt
 
-def analyze_token_lengths(file_path, model_name="mistralai/Mistral-7B-v0.1"):
+def analyze_token_lengths(file_path: str, model_name: str = "mistralai/Mistral-7B-v0.1") -> None:
     """
     Analyzes the token length distribution of the dataset.
+
+    Args:
+        file_path (str): Path to the JSONL dataset file.
+        model_name (str): Name of the Hugging Face model to use for tokenization.
     """
     print(f"Loading tokenizer: {model_name}...")
     try:
