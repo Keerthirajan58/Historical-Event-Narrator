@@ -39,6 +39,21 @@ Historical-Event-Narrator/
 ├── requirements.txt
 └── README.md
 ```
+---
+
+## 🛠️ Setup
+1. **Install Dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   pip install streamlit google-generativeai python-dotenv
+   ```
+2. **Environment Variables**:
+   Ensure `.env` contains your API key:
+   ```
+   GEMINI_API_KEY=your_key_here
+   ```
+
+---
 
 ## Running the App
 To run the Streamlit app:
@@ -48,3 +63,5 @@ To run the Streamlit app:
    ```bash
    streamlit run app/app.py
    ```
+
+# Thank You
